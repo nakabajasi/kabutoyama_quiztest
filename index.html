@@ -220,13 +220,13 @@
   <main class="page" id="mainPage">
     <header class="site-header">
       <h1>デジタルスタンプ大作戦!冑山古墳群</h1>
-      <p class="subtitle">古墳を探検して、4つのクイズに挑戦！</p>
+      <p class="subtitle">旦椋神社を探検して、4つのクイズに挑戦！</p>
     </header>
 
     <section class="quiz-card" aria-label="三択クイズ">
       <div class="progress-top">
         <span class="progress-label" id="progressLabel">1 / 4 問</span>
-        <span class="progress-sub">全問正解でスタンプ獲得！</span>
+        <span class="progress-sub">全問正解で画像ゲット！</span>
       </div>
       <div class="progress-dots" id="progressDots" aria-hidden="true"></div>
       <span class="question-number" id="questionNumber">クイズ 1</span>
@@ -254,8 +254,7 @@
 
   <script>
     'use strict';
-    // CSVの4問をHTML内に埋め込んでいるため、CSVをサーバーへアップロードする必要はありません。
-    const QUIZZES = [
+       const QUIZZES = [
   {
     "question": "この古墳から見つかった人物埴輪の全体の写真はどれ？正しい画像をタップしてね。",
     "hint": "説明板に顔の写真がのってるよ！",
@@ -398,7 +397,6 @@
       }, 780);
     }
 
-    // 添付元HTMLと同じ識別情報生成方式
     function formatCorrectDateTime(date) {
       const y = date.getFullYear();
       const m = String(date.getMonth() + 1).padStart(2, '0');
