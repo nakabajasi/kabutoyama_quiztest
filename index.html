@@ -95,6 +95,8 @@
       letter-spacing: .04em;
     }
     .question-text { margin: 8px 0 0; font-size: clamp(17px, 4.25vw, 21px); font-weight: 800; line-height: 1.72; }
+    .question-photo { display: block; width: 100%; max-width: 600px; max-height: 380px; height: auto; object-fit: contain; margin: 14px auto 2px; border-radius: 10px; }
+    .question-photo[hidden] { display: none; }
     details.hint {
       margin: 17px 0 21px;
       background: #f1f5eb;
@@ -265,8 +267,9 @@
         <div class="progress-meta"><span class="progress-sub">全問正解で画像ゲット！</span><span class="progress-score" id="scoreLabel">正解 0</span></div>
       </div>
       <div class="progress-dots" id="progressDots" aria-hidden="true"></div>
-      <span class="question-number" id="questionNumber">クイズ 1</span>
+      <span class="question-number" id="questionNumber">問題1</span>
       <h2 class="question-text" id="questionText"></h2>
+      <img class="question-photo" id="questionPhoto" alt="問題4のキャラクター" hidden>
       <details class="hint" id="hintDetails">
         <summary><span class="closed">ヒントを見る</span><span class="opened">ヒントを閉じる</span></summary>
         <p class="hint-text" id="hintText"></p>
@@ -318,7 +321,7 @@
     "incorrectMessage": "ざんねん！Spottourの説明文をよく読もう！"
   },
   {
-    "question": "旦椋神社の祭神の一人で、当時で休んだと伝わる「以仁王」の読み方はどれ？",
+    "question": "旦椋神社の祭神の一人で、当地で休んだと伝わる「以仁王」の読み方はどれ？",
     "hint": "Spottourの紹介文をよく読んでみよう！",
     "type": "text",
     "options": [
@@ -332,6 +335,7 @@
   },
   {
     "question": "このキャラクターに地元の人がつけた愛称は次のどれ？",
+    "image": "image_chara.jpg",
     "hint": "境内に看板があるよ！",
     "type": "text",
     "options": [
@@ -349,6 +353,7 @@
     const progressDots = document.getElementById('progressDots');
     const questionNumber = document.getElementById('questionNumber');
     const questionText = document.getElementById('questionText');
+    const questionPhoto = document.getElementById('questionPhoto');
     const hintDetails = document.getElementById('hintDetails');
     const hintText = document.getElementById('hintText');
     const choices = document.getElementById('choices');
@@ -378,8 +383,11 @@
         dot.className = 'progress-dot' + (i < currentIndex ? ' done' : (i === currentIndex ? ' active' : ''));
         progressDots.append(dot);
       }
-      questionNumber.textContent = `クイズ ${currentIndex + 1}`;
+      questionNumber.textContent = `問題${currentIndex + 1}`;
       questionText.textContent = q.question;
+      questionPhoto.hidden = !q.image;
+      if (q.image) questionPhoto.src = q.image;
+      else questionPhoto.removeAttribute('src');
       hintText.textContent = q.hint;
       hintDetails.open = false;
       feedback.textContent = '';
