@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#54755a">
+  <title>デジタルスタンプ大作戦!冑山古墳群</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --forest: #486a50;
+      --forest-dark: #2f513b;
+      --leaf: #dce9d8;
+      --earth: #80634c;
+      --earth-deep: #594533;
+      --paper: #fffdf8;
+      --ink: #283c30;
+      --muted: #627262;
+      --border: #d3ddcd;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+      color: var(--ink);
+      background: linear-gradient(167deg, #dfeddf 0%, #edf3e7 42%, #f0e5d7 100%);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: -110px;
+      left: -80px;
+      right: -80px;
+      height: 330px;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 9% 70%, rgba(125,160,119,.18), transparent 57%),
+                  radial-gradient(ellipse at 95% 10%, rgba(150,114,79,.10), transparent 50%);
+    }
+    .page {
+      width: min(100%, 770px);
+      padding: 17px 15px 42px;
+      margin: 0 auto;
+    }
+    .site-header {
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid #759276;
+      background: linear-gradient(125deg, #426e52, #66856a);
+      box-shadow: 0 5px 15px rgba(50,72,46,.12);
+      padding: 19px 14px 17px;
+      text-align: center;
+    }
+    .site-header h1 {
+      margin: 0;
+      color: #fffdf7;
+      font-weight: 800;
+      font-size: clamp(18px, 4.6vw, 26px);
+      line-height: 1.45;
+      letter-spacing: .015em;
+      overflow-wrap: anywhere;
+    }
+    .site-header .subtitle {
+      margin: 7px 0 0;
+      color: #edf5e9;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .quiz-card {
+      margin-top: 15px;
+      padding: clamp(17px, 4vw, 26px);
+      background: rgba(255,253,248,.97);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 8px 22px rgba(57,72,48,.075);
+    }
+    .progress-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .progress-label { font-size: 14px; font-weight: 800; color: var(--forest-dark); }
+    .progress-sub { font-size: 12px; color: var(--earth); font-weight: 700; }
+    .progress-dots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; margin-top: 12px; }
+    .progress-dot { height: 8px; background: #e9e2d8; border-radius: 20px; }
+    .progress-dot.done { background: #769d77; }
+    .progress-dot.active { background: #9e7c5b; }
+    .question-number {
+      display: inline-block;
+      margin-top: 25px;
+      color: #78563b;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+    .question-text { margin: 8px 0 0; font-size: clamp(17px, 4.25vw, 21px); font-weight: 800; line-height: 1.72; }
+    details.hint {
+      margin: 17px 0 21px;
+      background: #f1f5eb;
+      border: 1px solid #d7e2d0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .hint summary {
+      padding: 11px 13px;
+      color: var(--forest-dark);
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      min-height: 45px;
+      touch-action: manipulation;
+    }
+    .hint summary::marker { color: var(--forest); }
+    .hint summary .opened { display: none; }
+    .hint[open] summary .closed { display: none; }
+    .hint[open] summary .opened { display: inline; }
+    .hint-text { margin: 0; padding: 0 15px 15px; color: #4a5a49; font-size: 15px; line-height: 1.7; }
+    .choices { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; max-width: 600px; margin: 0 auto; }
+    .choice {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px 13px;
+      border-radius: 13px;
+      border: 2px solid #d7ded1;
+      background: #f9fbf6;
+      color: var(--ink);
+      font: inherit;
+      font-size: clamp(16px, 4.1vw, 19px);
+      line-height: 1.55;
+      font-weight: 750;
+      text-align: center;
+      min-height: 62px;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: background-color .15s, border-color .15s, transform .10s;
+    }
+    .choice:not(:disabled):active { transform: scale(.988); }
+    .choice:focus-visible, summary:focus-visible, .replay:focus-visible { outline: 3px solid #ab8359; outline-offset: 3px; }
+    .choice--image { padding: 9px; background: #fff; }
+    .choice img {
+      display: block;
+      max-width: 100%;
+      width: auto;
+      height: auto;
+      max-height: 265px;
+      object-fit: contain;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+    .choice--image .missing {
+      padding: 30px 12px;
+      color: #8d3e34;
+      text-align: center;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+    .choice.correct { background: #e5f2e2; border-color: #61986a; }
+    .choice.incorrect { background: #f7e5df; border-color: #c58c75; }
+    .choice:disabled { cursor: default; opacity: 1; }
+    .feedback { min-height: 24px; margin: 18px 0 0; text-align: center; font-weight: 750; font-size: 15px; line-height: 1.65; }
+    .feedback.good { color: #326d42; }
+    .feedback.bad { color: #a14b34; }
+    .note { margin: 15px 4px 0; font-size: 12px; color: #596d59; text-align: center; }
+    .correct-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 13px;
+      padding: 18px;
+      padding-top: max(18px, env(safe-area-inset-top));
+      padding-bottom: max(18px, env(safe-area-inset-bottom));
+      background: rgba(0,0,0,.88);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 220ms ease, visibility 220ms ease;
+    }
+    .correct-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
+    .correct-image-wrap { position: relative; display: inline-block; max-width: 96vw; max-height: 82dvh; }
+    .correct-image {
+      display: block;
+      max-width: 96vw;
+      max-height: 82vh;
+      max-height: 82dvh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      -webkit-touch-callout: default;
+      -webkit-user-select: auto;
+      user-select: auto;
+      -webkit-user-drag: auto;
+      transform: scale(.25);
+      opacity: 0;
+      transition: transform 420ms cubic-bezier(.18,.9,.28,1.2), opacity 260ms ease;
+    }
+    .correct-overlay.show .correct-image { transform: scale(1); opacity: 1; }
+    .save-tip { margin: 0; text-align: center; color: #fff; font-size: 14px; line-height: 1.6; font-weight: 700; }
+    .save-subtip { margin: -7px 0 0; text-align: center; font-size: 12px; color: #d1d1d1; }
+    .replay { font: inherit; font-weight: 750; background: #e0e8dd; color: #2a4531; border: none; border-radius: 9px; padding: 10px 21px; cursor: pointer; touch-action: manipulation; }
+    @media (max-width: 480px) {
+      .page { padding: 10px 10px 32px; }
+      .site-header { border-radius: 14px; padding: 17px 9px 14px; }
+      .quiz-card { margin-top: 11px; border-radius: 14px; }
+      .question-number { margin-top: 21px; }
+      .choice--image img { max-height: 230px; }
+      .correct-overlay { gap: 9px; padding: 10px; }
+      .correct-image { max-width: 98vw; max-height: 80dvh; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .choice, .correct-overlay, .correct-image { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page" id="mainPage">
+    <header class="site-header">
+      <h1>デジタルスタンプ大作戦!冑山古墳群</h1>
+      <p class="subtitle">古墳を探検して、4つのクイズに挑戦！</p>
+    </header>
+
+    <section class="quiz-card" aria-label="三択クイズ">
+      <div class="progress-top">
+        <span class="progress-label" id="progressLabel">1 / 4 問</span>
+        <span class="progress-sub">全問正解でスタンプ獲得！</span>
+      </div>
+      <div class="progress-dots" id="progressDots" aria-hidden="true"></div>
+      <span class="question-number" id="questionNumber">クイズ 1</span>
+      <h2 class="question-text" id="questionText"></h2>
+      <details class="hint" id="hintDetails">
+        <summary><span class="closed">ヒントを見る</span><span class="opened">ヒントを閉じる</span></summary>
+        <p class="hint-text" id="hintText"></p>
+      </details>
+      <div class="choices" id="choices" aria-label="選択肢"></div>
+      <p class="feedback" id="feedback" role="status" aria-live="polite"></p>
+    </section>
+    <p class="note">画像の問題は、正しいと思う画像をタップしてください。</p>
+  </main>
+
+  <!-- 添付HTMLと同じ方式：正解画像はCanvas上で日時・シリアル番号を焼き込み、長押しで画像を保存。 -->
+  <div class="correct-overlay" id="correctOverlay" aria-hidden="true">
+    <div class="correct-image-wrap" id="correctImageWrap">
+      <img id="answerImage" class="correct-image" alt="全問正解！保存用のスタンプ画像。長押しして保存できます。">
+      <canvas id="correctCanvas" style="display:none"></canvas>
+    </div>
+    <p class="save-tip">全問正解！画像を長押しして保存してね！</p>
+    <p class="save-subtip">画像の外側をタップすると最初に戻ります。</p>
+    <button class="replay" id="replayButton" type="button">もう一度挑戦する</button>
+  </div>
+
+  <script>
+    'use strict';
+    // CSVの4問をHTML内に埋め込んでいるため、CSVをサーバーへアップロードする必要はありません。
+    const QUIZZES = [
+  {
+    "question": "この古墳から見つかった人物埴輪の全体の写真はどれ？正しい画像をタップしてね。",
+    "hint": "説明板に顔の写真がのってるよ！",
+    "type": "image",
+    "options": [
+      "image_quiz1-1.jpg",
+      "image_quiz1-2.jpg",
+      "image_quiz1-3.jpg"
+    ],
+    "correct": 2,
+    "correctMessage": "正解！",
+    "incorrectMessage": "ざんねん！説明板の画像をよく見よう！"
+  },
+  {
+    "question": "冑山古墳群で見つかった古墳の形とその数の組み合わせはどれ？正しい画像をタップしてね。",
+    "hint": "Spottourの紹介文をよく読んでみよう！",
+    "type": "image",
+    "options": [
+      "image_quiz2-1.jpg",
+      "image_quiz2-2.jpg",
+      "image_quiz2-3.jpg"
+    ],
+    "correct": 0,
+    "correctMessage": "正解！",
+    "incorrectMessage": "ざんねん！Spottourの説明文をよく読もう！"
+  },
+  {
+    "question": "旦椋神社の祭神の一人で、当時で休んだと伝わる「以仁王」の読み方はどれ？",
+    "hint": "Spottourの紹介文をよく読んでみよう！",
+    "type": "text",
+    "options": [
+      "いじんおう",
+      "いにんおう",
+      "もちひとおう"
+    ],
+    "correct": 2,
+    "correctMessage": "正解！",
+    "incorrectMessage": "ざんねん！Spottourの説明文をよく読もう！"
+  },
+  {
+    "question": "このキャラクターに地元の人がつけた愛称は次のどれ？",
+    "hint": "境内に看板があるよ！",
+    "type": "text",
+    "options": [
+      "もっちー",
+      "あさもっちー",
+      "もちもっちー"
+    ],
+    "correct": 1,
+    "correctMessage": "正解！",
+    "incorrectMessage": "ざんねん！境内を探してみよう！"
+  }
+];
+    const TOTAL = QUIZZES.length;
+    const progressLabel = document.getElementById('progressLabel');
+    const progressDots = document.getElementById('progressDots');
+    const questionNumber = document.getElementById('questionNumber');
+    const questionText = document.getElementById('questionText');
+    const hintDetails = document.getElementById('hintDetails');
+    const hintText = document.getElementById('hintText');
+    const choices = document.getElementById('choices');
+    const feedback = document.getElementById('feedback');
+    const correctOverlay = document.getElementById('correctOverlay');
+    const answerImage = document.getElementById('answerImage');
+    const correctCanvas = document.getElementById('correctCanvas');
+    const replayButton = document.getElementById('replayButton');
+    let currentIndex = 0;
+    let waitingForNext = false;
+    let isCorrect = false;
+    let nextTimer = null;
+
+    function renderQuiz() {
+      const q = QUIZZES[currentIndex];
+      progressLabel.textContent = `${currentIndex + 1} / ${TOTAL} 問`;
+      progressDots.replaceChildren();
+      for (let i = 0; i < TOTAL; i++) {
+        const dot = document.createElement('span');
+        dot.className = 'progress-dot' + (i < currentIndex ? ' done' : (i === currentIndex ? ' active' : ''));
+        progressDots.append(dot);
+      }
+      questionNumber.textContent = `クイズ ${currentIndex + 1}`;
+      questionText.textContent = q.question;
+      hintText.textContent = q.hint;
+      hintDetails.open = false;
+      feedback.textContent = '';
+      feedback.className = 'feedback';
+      choices.replaceChildren();
+      q.options.forEach((option, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'choice' + (q.type === 'image' ? ' choice--image' : '');
+        btn.setAttribute('aria-label', q.type === 'image' ? `画像の選択肢 ${i + 1}` : option);
+        if (q.type === 'image') {
+          const img = document.createElement('img');
+          img.src = option;
+          img.alt = `選択肢 ${i + 1}`;
+          img.loading = 'eager';
+          img.draggable = false;
+          img.addEventListener('error', () => {
+            img.remove();
+            const error = document.createElement('span');
+            error.className = 'missing';
+            error.textContent = `画像を表示できません：${option}`;
+            btn.append(error);
+          }, { once: true });
+          btn.append(img);
+        } else {
+          btn.textContent = option;
+        }
+        btn.addEventListener('click', () => handleChoice(i, btn));
+        choices.append(btn);
+      });
+      waitingForNext = false;
+    }
+
+    function handleChoice(index, button) {
+      if (waitingForNext || isCorrect) return;
+      const q = QUIZZES[currentIndex];
+      [...choices.children].forEach(el => el.classList.remove('incorrect'));
+      if (index !== q.correct) {
+        button.classList.add('incorrect');
+        feedback.className = 'feedback bad';
+        feedback.textContent = q.incorrectMessage;
+        return;
+      }
+      waitingForNext = true;
+      button.classList.add('correct');
+      [...choices.children].forEach(el => { el.disabled = true; });
+      feedback.className = 'feedback good';
+      feedback.textContent = q.correctMessage;
+      nextTimer = setTimeout(() => {
+        nextTimer = null;
+        if (currentIndex < TOTAL - 1) {
+          currentIndex++;
+          renderQuiz();
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        } else {
+          showCorrectImage();
+        }
+      }, 780);
+    }
+
+    // 添付元HTMLと同じ識別情報生成方式
+    function formatCorrectDateTime(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      const h = String(date.getHours()).padStart(2, '0');
+      const min = String(date.getMinutes()).padStart(2, '0');
+      const s = String(date.getSeconds()).padStart(2, '0');
+      return `${y}/${m}/${d} ${h}:${min}:${s}`;
+    }
+    function createRandomSerial() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      const bytes = new Uint32Array(12);
+      if (window.crypto && window.crypto.getRandomValues) {
+        window.crypto.getRandomValues(bytes);
+      } else {
+        for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 0xffffffff);
+      }
+      let serial = '';
+      for (let i = 0; i < bytes.length; i++) {
+        serial += chars[bytes[i] % chars.length];
+        if (i === 3 || i === 7) serial += '-';
+      }
+      return serial;
+    }
+
+    function drawCorrectImageWithSecurityInfo() {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const canvas = correctCanvas;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('Canvasを利用できません。');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            const now = new Date();
+            const dateText = '正解日時: ' + formatCorrectDateTime(now);
+            const serialText = 'SERIAL: ' + createRandomSerial();
+            const noteText = '不正コピー防止のため識別情報を表示しています';
+            const base = Math.max(12, Math.round(canvas.width * .0105));
+            const small = Math.max(10, Math.round(canvas.width * .0085));
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'top';
+            ctx.font = `700 ${base}px sans-serif`;
+            const padX = Math.round(canvas.width * .012);
+            const padY = Math.round(canvas.height * .008);
+            const lineGap = Math.round(base * 1.18);
+            const widths = [ctx.measureText(dateText).width, ctx.measureText(serialText).width];
+            ctx.font = `500 ${small}px sans-serif`;
+            widths.push(ctx.measureText(noteText).width);
+            const boxWidth = Math.min(canvas.width, Math.max(...widths) + padX * 1.4);
+            const boxHeight = lineGap * 2 + small * 1.35 + padY;
+            const x = canvas.width - padX;
+            const y = padY;
+            ctx.fillStyle = 'rgba(0,0,0,.45)';
+            ctx.fillRect(canvas.width - boxWidth - Math.round(padX*.4), 0, boxWidth + Math.round(padX*.4), boxHeight + padY);
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0,0,0,.9)';
+            ctx.shadowBlur = Math.max(1, Math.round(base*.08));
+            ctx.font = `700 ${base}px sans-serif`;
+            ctx.fillText(dateText, x, y);
+            ctx.fillText(serialText, x, y + lineGap);
+            ctx.font = `500 ${small}px sans-serif`;
+            ctx.fillText(noteText, x, y + lineGap * 2);
+            ctx.shadowBlur = 0;
+            answerImage.src = canvas.toDataURL('image/jpeg', .95);
+            resolve();
+          } catch (err) { reject(err); }
+        };
+        img.onerror = () => reject(new Error('image_seikai.jpg が見つかりません。'));
+        img.src = 'image_seikai.jpg';
+      });
+    }
+
+    async function showCorrectImage() {
+      isCorrect = true;
+      answerImage.removeAttribute('src');
+      try {
+        await drawCorrectImageWithSecurityInfo();
+        correctOverlay.classList.add('show');
+        correctOverlay.setAttribute('aria-hidden', 'false');
+      } catch (err) {
+        console.error('正解画像の描画に失敗しました。', err);
+        isCorrect = false;
+        waitingForNext = false;
+        feedback.className = 'feedback bad';
+        feedback.textContent = '正解画像を表示できません。image_seikai.jpg が同じフォルダにあるか確認してください。';
+      }
+    }
+    function resetQuiz() {
+      if (!isCorrect) return;
+      if (nextTimer) clearTimeout(nextTimer);
+      nextTimer = null;
+      correctOverlay.classList.remove('show');
+      correctOverlay.setAttribute('aria-hidden', 'true');
+      answerImage.removeAttribute('src');
+      isCorrect = false;
+      currentIndex = 0;
+      renderQuiz();
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+    // 画像自体はタップや長押しで閉じない（ブラウザの保存メニューを優先）。
+    document.getElementById('correctImageWrap').addEventListener('click', e => e.stopPropagation());
+    correctOverlay.addEventListener('click', resetQuiz);
+    replayButton.addEventListener('click', e => { e.stopPropagation(); resetQuiz(); });
+    renderQuiz();
+  </script>
+</body>
+</html>
