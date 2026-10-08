@@ -80,6 +80,8 @@
     .progress-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .progress-label { font-size: 14px; font-weight: 800; color: var(--forest-dark); }
     .progress-sub { font-size: 12px; color: var(--earth); font-weight: 700; }
+    .progress-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right; }
+    .progress-score { font-size: 12px; font-weight: 700; color: var(--forest-dark); }
     .progress-dots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; margin-top: 12px; }
     .progress-dot { height: 8px; background: #e9e2d8; border-radius: 20px; }
     .progress-dot.done { background: #769d77; }
@@ -136,7 +138,7 @@
       transition: background-color .15s, border-color .15s, transform .10s;
     }
     .choice:not(:disabled):active { transform: scale(.988); }
-    .choice:focus-visible, summary:focus-visible, .replay:focus-visible { outline: 3px solid #ab8359; outline-offset: 3px; }
+    .choice:focus-visible, summary:focus-visible, .replay:focus-visible, .next:focus-visible, .restart:focus-visible { outline: 3px solid #ab8359; outline-offset: 3px; }
     .choice--image { padding: 9px; background: #fff; }
     .choice img {
       display: block;
@@ -161,6 +163,40 @@
     .feedback { min-height: 24px; margin: 18px 0 0; text-align: center; font-weight: 750; font-size: 15px; line-height: 1.65; }
     .feedback.good { color: #326d42; }
     .feedback.bad { color: #a14b34; }
+    .next {
+      display: none;
+      width: 100%;
+      min-height: 54px;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 13px;
+      background: var(--forest);
+      color: #fff;
+      font: inherit;
+      font-size: 17px;
+      font-weight: 750;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .next.show { display: block; }
+    .result { text-align: center; }
+    .result .question-text { margin: 8px 0 10px; }
+    .score { font-size: clamp(42px, 12vw, 64px); font-weight: 800; color: var(--forest-dark); }
+    .result p { font-size: 17px; line-height: 1.7; }
+    .restart {
+      width: 100%;
+      min-height: 54px;
+      margin-top: 10px;
+      border: 0;
+      border-radius: 13px;
+      background: var(--forest);
+      color: #fff;
+      font: inherit;
+      font-size: 17px;
+      font-weight: 750;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
     .note { margin: 15px 4px 0; font-size: 12px; color: #596d59; text-align: center; }
     .correct-overlay {
       position: fixed;
@@ -220,13 +256,13 @@
   <main class="page" id="mainPage">
     <header class="site-header">
       <h1>デジタルスタンプ大作戦!冑山古墳群</h1>
-      <p class="subtitle">旦椋神社を探検して、4つのクイズに挑戦！</p>
+      <p class="subtitle">古墳を探検して、4つのクイズに挑戦！</p>
     </header>
 
-    <section class="quiz-card" aria-label="三択クイズ">
+    <section class="quiz-card" id="quizCard" aria-label="三択クイズ">
       <div class="progress-top">
         <span class="progress-label" id="progressLabel">1 / 4 問</span>
-        <span class="progress-sub">全問正解で画像ゲット！</span>
+        <div class="progress-meta"><span class="progress-sub">全問正解で画像ゲット！</span><span class="progress-score" id="scoreLabel">正解 0</span></div>
       </div>
       <div class="progress-dots" id="progressDots" aria-hidden="true"></div>
       <span class="question-number" id="questionNumber">クイズ 1</span>
@@ -237,14 +273,14 @@
       </details>
       <div class="choices" id="choices" aria-label="選択肢"></div>
       <p class="feedback" id="feedback" role="status" aria-live="polite"></p>
+      <button class="next" id="nextButton" type="button">次の問題へ</button>
     </section>
-    <p class="note">画像の問題は、正しいと思う画像をタップしてください。</p>
+    <p class="note" id="note">画像の問題は、正しいと思う画像をタップしてください。</p>
   </main>
 
-  <!-- 添付HTMLと同じ方式：正解画像はCanvas上で日時・シリアル番号を焼き込み、長押しで画像を保存。 -->
   <div class="correct-overlay" id="correctOverlay" aria-hidden="true">
     <div class="correct-image-wrap" id="correctImageWrap">
-      <img id="answerImage" class="correct-image" alt="全問正解！保存用のスタンプ画像。長押しして保存できます。">
+      <img id="answerImage" class="correct-image" alt="全問正解！保存用の正解画像。長押しして保存できます。">
       <canvas id="correctCanvas" style="display:none"></canvas>
     </div>
     <p class="save-tip">全問正解！画像を長押しして保存してね！</p>
@@ -254,7 +290,7 @@
 
   <script>
     'use strict';
-       const QUIZZES = [
+    const QUIZZES = [
   {
     "question": "この古墳から見つかった人物埴輪の全体の写真はどれ？正しい画像をタップしてね。",
     "hint": "説明板に顔の写真がのってるよ！",
@@ -317,18 +353,25 @@
     const hintText = document.getElementById('hintText');
     const choices = document.getElementById('choices');
     const feedback = document.getElementById('feedback');
+    const nextButton = document.getElementById('nextButton');
+    const scoreLabel = document.getElementById('scoreLabel');
+    const quizCard = document.getElementById('quizCard');
+    const note = document.getElementById('note');
     const correctOverlay = document.getElementById('correctOverlay');
     const answerImage = document.getElementById('answerImage');
     const correctCanvas = document.getElementById('correctCanvas');
     const replayButton = document.getElementById('replayButton');
     let currentIndex = 0;
-    let waitingForNext = false;
+    let answered = false;
+    let score = 0;
     let isCorrect = false;
     let nextTimer = null;
 
     function renderQuiz() {
       const q = QUIZZES[currentIndex];
+      answered = false;
       progressLabel.textContent = `${currentIndex + 1} / ${TOTAL} 問`;
+      scoreLabel.textContent = `正解 ${score}`;
       progressDots.replaceChildren();
       for (let i = 0; i < TOTAL; i++) {
         const dot = document.createElement('span');
@@ -341,6 +384,7 @@
       hintDetails.open = false;
       feedback.textContent = '';
       feedback.className = 'feedback';
+      nextButton.className = 'next';
       choices.replaceChildren();
       q.options.forEach((option, i) => {
         const btn = document.createElement('button');
@@ -367,35 +411,68 @@
         btn.addEventListener('click', () => handleChoice(i, btn));
         choices.append(btn);
       });
-      waitingForNext = false;
     }
 
     function handleChoice(index, button) {
-      if (waitingForNext || isCorrect) return;
+      if (answered || isCorrect) return;
+      answered = true;
       const q = QUIZZES[currentIndex];
-      [...choices.children].forEach(el => el.classList.remove('incorrect'));
-      if (index !== q.correct) {
+      const correct = index === q.correct;
+      [...choices.children].forEach((el, i) => {
+        el.disabled = true;
+        if (i === q.correct) el.classList.add('correct');
+      });
+      if (correct) {
+        score++;
+        feedback.className = 'feedback good';
+        feedback.textContent = q.correctMessage;
+      } else {
         button.classList.add('incorrect');
         feedback.className = 'feedback bad';
         feedback.textContent = q.incorrectMessage;
-        return;
       }
-      waitingForNext = true;
-      button.classList.add('correct');
-      [...choices.children].forEach(el => { el.disabled = true; });
-      feedback.className = 'feedback good';
-      feedback.textContent = q.correctMessage;
-      nextTimer = setTimeout(() => {
-        nextTimer = null;
-        if (currentIndex < TOTAL - 1) {
-          currentIndex++;
-          renderQuiz();
-          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-        } else {
-          showCorrectImage();
-        }
-      }, 780);
+      scoreLabel.textContent = `正解 ${score}`;
+      if (currentIndex === TOTAL - 1) {
+        nextTimer = setTimeout(() => {
+          nextTimer = null;
+          if (score === TOTAL) {
+            showCorrectImage();
+          } else {
+            showResult();
+          }
+        }, 700);
+      } else {
+        nextButton.classList.add('show');
+      }
     }
+
+    function showResult() {
+      note.hidden = true;
+      quizCard.innerHTML = `
+        <div class="result">
+          <p class="question-number">クイズ終了</p>
+          <h2 class="question-text">おつかれさまでした！</h2>
+          <div class="score">${score} / ${TOTAL}</div>
+          <p>${resultMessage(score)}</p>
+          <button class="restart" id="restartButton" type="button">もう一度挑戦する</button>
+        </div>
+      `;
+      document.getElementById('restartButton').addEventListener('click', () => location.reload());
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }
+
+    function resultMessage(s) {
+      if (s === 3) return 'あと少し！説明板をもう一度見てみよう。';
+      if (s === 2) return '半分正解！まだ見落としているヒントがありそうです。';
+      return '説明板には答えにつながるヒントが隠れています。もう一度挑戦してみよう。';
+    }
+
+    nextButton.addEventListener('click', () => {
+      if (!answered || currentIndex >= TOTAL - 1) return;
+      currentIndex++;
+      renderQuiz();
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    });
 
     function formatCorrectDateTime(date) {
       const y = date.getFullYear();
@@ -483,7 +560,6 @@
       } catch (err) {
         console.error('正解画像の描画に失敗しました。', err);
         isCorrect = false;
-        waitingForNext = false;
         feedback.className = 'feedback bad';
         feedback.textContent = '正解画像を表示できません。image_seikai.jpg が同じフォルダにあるか確認してください。';
       }
@@ -496,11 +572,11 @@
       correctOverlay.setAttribute('aria-hidden', 'true');
       answerImage.removeAttribute('src');
       isCorrect = false;
+      score = 0;
       currentIndex = 0;
       renderQuiz();
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     }
-    // 画像自体はタップや長押しで閉じない（ブラウザの保存メニューを優先）。
     document.getElementById('correctImageWrap').addEventListener('click', e => e.stopPropagation());
     correctOverlay.addEventListener('click', resetQuiz);
     replayButton.addEventListener('click', e => { e.stopPropagation(); resetQuiz(); });
